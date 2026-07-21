@@ -18,16 +18,20 @@ bundle install
 bin/format-text some-file.txt
 ```
 
-Currently `bin/format-text` is a no-op pass-through: it reads the given file and prints its
-contents to stdout unchanged. This is the walking skeleton that proves the plumbing -- argument
-handling, file reading, error reporting, exit codes -- before any formatting rules are layered on
-top of it, following a "make it work, make it right, make it fast" / skateboard-to-car approach:
+Currently `bin/format-text` wraps text at 80 characters, breaking on the closest previous space
+(`FormatText::LineWrapper`). It does **not** yet implement the long-word exception, paragraph
+spacing, or whitespace collapsing from `CHALLENGE.md` -- multi-paragraph input will have its
+paragraph breaks flattened into one continuous wrapped block until those rules land. This is
+delivered following a "make it work, make it right, make it fast" / skateboard-to-car approach;
+see the [wiki Roadmap](https://github.com/billeisenhauer/format-text/wiki/Roadmap) for current
+status:
 
-1. **Skateboard** -- a working, no-op CLI with the full test harness in place (this commit).
-2. **Bicycle** -- basic word-wrapping at 80 characters.
+1. **Skateboard** -- a working, no-op CLI with the full test harness in place. ✅
+2. **Bicycle** -- basic word-wrapping at 80 characters. ✅
 3. **Motorcycle** -- full correctness: long-word exception, paragraph blank lines, whitespace
    collapsing.
 4. **Car** -- refactor for clarity and performance once the behavior is fully correct.
+5. **Limousine** -- `--help` text that documents usage and the formatting rules.
 
 ## Testing
 
@@ -43,14 +47,17 @@ bundle exec rake crap            # coverage + CRAP score analysis (see below)
 
 `rake test` (the default rake task) is the fast inner-loop suite:
 
-- **Unit tests** (`test/unit`) exercise `FormatText::CLI` directly, in-process.
+- **Unit tests** (`test/unit`) exercise `FormatText::CLI` and `FormatText::LineWrapper` directly,
+  in-process.
 - **CLI integration tests** (`test/integration`) shell out to the real `bin/format-text`
   executable via `Open3` and assert on stdout/stderr/exit status end-to-end.
 - **Property-based tests** (`test/property`, using [rantly](https://github.com/rantly-rb/rantly))
   generate hundreds of random inputs to check invariants that should hold for *any* input, not
-  just the examples in `CHALLENGE.md`. Right now the CLI is a pass-through, so the only invariant
-  is "output equals input"; once formatting rules land, this evolves into checking things like
-  "no line exceeds 80 characters" and "no run of blank lines survives" across arbitrary text.
+  just the examples in `CHALLENGE.md` -- targeted at `FormatText::LineWrapper` directly, since
+  that's where the actual wrapping logic (and therefore the interesting edge cases) lives. Current
+  invariants: no output line exceeds 80 characters unless it's a single unbreakable word, and
+  every word from the input survives, in order, in the output. More invariants ("no run of blank
+  lines survives", whitespace collapsing) land as those rules are implemented.
 
 ### Mutation testing
 
@@ -63,9 +70,10 @@ kills each mutation (rather than just achieving line coverage without asserting 
 `.mutant.yml` declares `usage: opensource`, which is free with no signup because this is a public
 open-source repository -- see mutant's
 [configuration docs](https://github.com/mbj/mutant/blob/main/docs/configuration.md) if that ever
-changes. Test classes that exercise `FormatText::CLI` in-process declare `cover "FormatText::CLI"`
-so mutant knows which tests to run per subject; the CLI integration tests deliberately omit this,
-since they shell out to a fresh Ruby process and can never observe an in-process mutation.
+changes. Test classes that exercise a `FormatText` class in-process declare a matching `cover`
+(e.g. `cover "FormatText::LineWrapper"`) so mutant knows which tests to run per subject; the CLI
+integration tests deliberately omit this, since they shell out to a fresh Ruby process and can
+never observe an in-process mutation.
 
 ### Coverage and CRAP analysis
 
