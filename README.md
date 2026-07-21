@@ -18,18 +18,17 @@ bundle install
 bin/format-text some-file.txt
 ```
 
-Currently `bin/format-text` wraps text at 80 characters, breaking on the closest previous space
-(`FormatText::LineWrapper`). It does **not** yet implement the long-word exception, paragraph
-spacing, or whitespace collapsing from `CHALLENGE.md` -- multi-paragraph input will have its
-paragraph breaks flattened into one continuous wrapped block until those rules land. This is
-delivered following a "make it work, make it right, make it fast" / skateboard-to-car approach;
-see the [wiki Roadmap](https://github.com/billeisenhauer/format-text/wiki/Roadmap) for current
-status:
+`bin/format-text` now implements all five formatting rules from `CHALLENGE.md`: 80-column word
+wrap with the long-word exception, paragraph splitting on blank lines with exactly one blank line
+between paragraphs in the output, and collapsing runs of spaces or blank lines to a single one.
+Output matches `CHALLENGE.md`'s worked example exactly (pinned by a test). This is delivered
+following a "make it work, make it right, make it fast" / skateboard-to-car approach; see the
+[wiki Roadmap](https://github.com/billeisenhauer/format-text/wiki/Roadmap) for current status:
 
 1. **Skateboard** -- a working, no-op CLI with the full test harness in place. ✅
 2. **Bicycle** -- basic word-wrapping at 80 characters. ✅
 3. **Motorcycle** -- full correctness: long-word exception, paragraph blank lines, whitespace
-   collapsing.
+   collapsing. ✅
 4. **Car** -- refactor for clarity and performance once the behavior is fully correct.
 5. **Limousine** -- `--help` text that documents usage and the formatting rules.
 
@@ -47,17 +46,18 @@ bundle exec rake crap            # coverage + CRAP score analysis (see below)
 
 `rake test` (the default rake task) is the fast inner-loop suite:
 
-- **Unit tests** (`test/unit`) exercise `FormatText::CLI` and `FormatText::LineWrapper` directly,
-  in-process.
+- **Unit tests** (`test/unit`) exercise `FormatText::CLI`, `FormatText::LineWrapper`,
+  `FormatText::ParagraphSplitter`, and `FormatText::Formatter` directly, in-process --
+  including a test pinned to `CHALLENGE.md`'s worked example, matched byte-for-byte.
 - **CLI integration tests** (`test/integration`) shell out to the real `bin/format-text`
   executable via `Open3` and assert on stdout/stderr/exit status end-to-end.
 - **Property-based tests** (`test/property`, using [rantly](https://github.com/rantly-rb/rantly))
   generate hundreds of random inputs to check invariants that should hold for *any* input, not
-  just the examples in `CHALLENGE.md` -- targeted at `FormatText::LineWrapper` directly, since
-  that's where the actual wrapping logic (and therefore the interesting edge cases) lives. Current
-  invariants: no output line exceeds 80 characters unless it's a single unbreakable word, and
-  every word from the input survives, in order, in the output. More invariants ("no run of blank
-  lines survives", whitespace collapsing) land as those rules are implemented.
+  just the examples in `CHALLENGE.md` -- targeted at `LineWrapper` and `Formatter` directly, since
+  that's where the actual logic (and therefore the interesting edge cases) lives. Current
+  invariants: no output line exceeds 80 characters unless it's a single unbreakable word; every
+  word from the input survives, in order; paragraphs survive in order separated by exactly one
+  blank line; and runs of spaces within a paragraph collapse to one.
 
 ### Mutation testing
 
@@ -74,6 +74,14 @@ changes. Test classes that exercise a `FormatText` class in-process declare a ma
 (e.g. `cover "FormatText::LineWrapper"`) so mutant knows which tests to run per subject; the CLI
 integration tests deliberately omit this, since they shell out to a fresh Ruby process and can
 never observe an in-process mutation.
+
+Not every mutation is killable: `ParagraphSplitter`'s blank-line check (`line.strip.empty?`) has
+mutations to `.lstrip`/`.rstrip` that survive, because for the purpose of "is this string entirely
+whitespace," `strip`, `lstrip`, and `rstrip` are mathematically equivalent -- if any non-whitespace
+character exists, it survives all three; if none exists, all three go empty. This is a genuine
+instance of the well-known "equivalent mutant problem" in mutation testing, not a coverage gap; see
+[Testing Strategy](https://github.com/billeisenhauer/format-text/wiki/Testing-Strategy) for the
+full reasoning.
 
 ### Coverage and CRAP analysis
 
