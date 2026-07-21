@@ -1,0 +1,17 @@
+# format-text is a public open-source repository, so the free `opensource`
+# usage tier applies -- no signup or payment required. See:
+# https://github.com/mbj/mutant/blob/main/docs/configuration.md
+usage: opensource
+
+integration:
+  name: minitest
+
+includes:
+  - lib
+
+requires:
+  - format_text
+
+matcher:
+  subjects:
+    - "FormatText*"
