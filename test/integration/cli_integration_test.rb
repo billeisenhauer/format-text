@@ -23,6 +23,15 @@ module FormatText
       end
     end
 
+    def test_running_the_executable_wraps_long_lines
+      long_word = "a" * 40
+      with_temp_file("#{long_word} #{long_word}") do |path|
+        stdout, _stderr, = Open3.capture3(RbConfig.ruby, BIN, path)
+
+        assert_equal "#{long_word}\n#{long_word}\n", stdout
+      end
+    end
+
     def test_running_the_executable_without_arguments_fails_with_usage
       stdout, stderr, status = Open3.capture3(RbConfig.ruby, BIN)
 
