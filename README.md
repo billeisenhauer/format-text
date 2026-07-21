@@ -29,7 +29,7 @@ following a "make it work, make it right, make it fast" / skateboard-to-car appr
 2. **Bicycle** -- basic word-wrapping at 80 characters. ✅
 3. **Motorcycle** -- full correctness: long-word exception, paragraph blank lines, whitespace
    collapsing. ✅
-4. **Car** -- refactor for clarity and performance once the behavior is fully correct.
+4. **Car** -- refactor for clarity and performance once the behavior is fully correct. ✅
 5. **Limousine** -- `--help` text that documents usage and the formatting rules.
 
 ## Testing
@@ -79,7 +79,8 @@ Not every mutation is killable: `ParagraphSplitter`'s blank-line check (`line.st
 mutations to `.lstrip`/`.rstrip` that survive, because for the purpose of "is this string entirely
 whitespace," `strip`, `lstrip`, and `rstrip` are mathematically equivalent -- if any non-whitespace
 character exists, it survives all three; if none exists, all three go empty. This is a genuine
-instance of the well-known "equivalent mutant problem" in mutation testing, not a coverage gap; see
+instance of the well-known "equivalent mutant problem" in mutation testing, not a coverage gap
+(currently 2 of 306 mutations); see
 [Testing Strategy](https://github.com/billeisenhauer/format-text/wiki/Testing-Strategy) for the
 full reasoning.
 

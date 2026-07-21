@@ -6,6 +6,7 @@ require "open3"
 module FormatText
   class CLIIntegrationTest < Minitest::Test
     include TempFileHelper
+    include ChallengeExample
 
     # No `cover` declaration: this test shells out to a fresh ruby process
     # (see BIN below), so it always exercises the unmutated code on disk and
@@ -29,6 +30,14 @@ module FormatText
         stdout, _stderr, = Open3.capture3(RbConfig.ruby, BIN, path)
 
         assert_equal "#{long_word}\n#{long_word}\n", stdout
+      end
+    end
+
+    def test_running_the_executable_matches_the_challenge_worked_example
+      with_temp_file(challenge_worked_example) do |path|
+        stdout, = Open3.capture3(RbConfig.ruby, BIN, path)
+
+        assert_equal "#{challenge_expected_output}\n", stdout
       end
     end
 

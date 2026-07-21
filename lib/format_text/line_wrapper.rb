@@ -25,6 +25,8 @@ module FormatText
       words.each { |word| current = accumulate(lines, current, word) }
       lines << current
 
+      # current stays nil for empty input; join stringifies nil as "", so
+      # this needs no separate empty-input guard.
       lines.join("\n")
     end
 
