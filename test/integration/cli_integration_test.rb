@@ -41,6 +41,27 @@ module FormatText
       end
     end
 
+    def test_running_the_executable_with_help_flag_prints_help
+      stdout, _stderr, status = Open3.capture3(RbConfig.ruby, BIN, "--help")
+
+      assert_includes stdout, "usage: format-text FILENAME"
+      assert_includes stdout, "80 characters"
+      assert_predicate status, :success?
+    end
+
+    def test_running_the_executable_with_help_flag_writes_nothing_to_stderr
+      _stdout, stderr, = Open3.capture3(RbConfig.ruby, BIN, "--help")
+
+      assert_empty stderr
+    end
+
+    def test_running_the_executable_with_short_help_flag_prints_help
+      stdout, _stderr, status = Open3.capture3(RbConfig.ruby, BIN, "-h")
+
+      assert_includes stdout, "usage: format-text FILENAME"
+      assert_predicate status, :success?
+    end
+
     def test_running_the_executable_without_arguments_fails_with_usage
       stdout, stderr, status = Open3.capture3(RbConfig.ruby, BIN)
 

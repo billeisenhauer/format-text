@@ -16,21 +16,25 @@ bundle install
 
 ```sh
 bin/format-text some-file.txt
+bin/format-text --help   # or -h
 ```
 
-`bin/format-text` now implements all five formatting rules from `CHALLENGE.md`: 80-column word
-wrap with the long-word exception, paragraph splitting on blank lines with exactly one blank line
+`bin/format-text` implements all five formatting rules from `CHALLENGE.md`: 80-column word wrap
+with the long-word exception, paragraph splitting on blank lines with exactly one blank line
 between paragraphs in the output, and collapsing runs of spaces or blank lines to a single one.
-Output matches `CHALLENGE.md`'s worked example exactly (pinned by a test). This is delivered
-following a "make it work, make it right, make it fast" / skateboard-to-car approach; see the
-[wiki Roadmap](https://github.com/billeisenhauer/format-text/wiki/Roadmap) for current status:
+Output matches `CHALLENGE.md`'s worked example exactly (pinned by a test). `--help`/`-h` prints
+usage plus a summary of those rules and exits successfully; it takes precedence over any other
+arguments, and running with no arguments at all still shows the plain usage error (exit 1), not
+help. This is delivered following a "make it work, make it right, make it fast" / skateboard-to-car
+approach; see the [wiki Roadmap](https://github.com/billeisenhauer/format-text/wiki/Roadmap) for
+current status:
 
 1. **Skateboard** -- a working, no-op CLI with the full test harness in place. ✅
 2. **Bicycle** -- basic word-wrapping at 80 characters. ✅
 3. **Motorcycle** -- full correctness: long-word exception, paragraph blank lines, whitespace
    collapsing. ✅
 4. **Car** -- refactor for clarity and performance once the behavior is fully correct. ✅
-5. **Limousine** -- `--help` text that documents usage and the formatting rules.
+5. **Limousine** -- `--help` text that documents usage and the formatting rules. ✅
 
 ## Testing
 
@@ -80,7 +84,7 @@ mutations to `.lstrip`/`.rstrip` that survive, because for the purpose of "is th
 whitespace," `strip`, `lstrip`, and `rstrip` are mathematically equivalent -- if any non-whitespace
 character exists, it survives all three; if none exists, all three go empty. This is a genuine
 instance of the well-known "equivalent mutant problem" in mutation testing, not a coverage gap
-(currently 2 of 306 mutations); see
+(currently 2 of 339 mutations); see
 [Testing Strategy](https://github.com/billeisenhauer/format-text/wiki/Testing-Strategy) for the
 full reasoning.
 
