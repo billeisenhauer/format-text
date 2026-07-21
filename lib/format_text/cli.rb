@@ -19,7 +19,7 @@ module FormatText
     def run
       return usage_error if filename.nil?
 
-      stdout.puts(LineWrapper.call(File.read(filename)))
+      stdout.puts(Formatter.call(File.read(filename)))
       SUCCESS
     rescue Errno::ENOENT
       stderr.puts("format-text: no such file -- #{filename}")
