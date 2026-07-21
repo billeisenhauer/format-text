@@ -11,4 +11,5 @@ require "stringio"
 require "tempfile"
 
 require_relative "support/temp_file_helper"
+require_relative "support/challenge_example"
 require_relative "../lib/format_text"
