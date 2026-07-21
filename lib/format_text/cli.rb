@@ -2,12 +2,6 @@
 
 module FormatText
   # Entry point invoked by bin/format-text.
-  #
-  # For now this is a no-op pass-through: it reads the given file and
-  # writes its contents to stdout unchanged. This is the walking skeleton
-  # ("skateboard") that proves the plumbing -- argument handling, file
-  # reading, error reporting, exit codes -- before any formatting rules
-  # are layered on top of it.
   class CLI
     SUCCESS = 0
     FAILURE = 1
@@ -25,7 +19,7 @@ module FormatText
     def run
       return usage_error if filename.nil?
 
-      stdout.print(File.read(filename))
+      stdout.puts(LineWrapper.call(File.read(filename)))
       SUCCESS
     rescue Errno::ENOENT
       stderr.puts("format-text: no such file -- #{filename}")

@@ -8,14 +8,25 @@ module FormatText
 
     cover "FormatText::CLI"
 
-    def test_prints_file_contents_to_stdout
+    def test_prints_formatted_file_contents_to_stdout
       with_temp_file("hello world") do |path|
         stdout = StringIO.new
 
         status = CLI.run([path], stdout: stdout, stderr: StringIO.new)
 
-        assert_equal "hello world", stdout.string
+        assert_equal "hello world\n", stdout.string
         assert_equal CLI::SUCCESS, status
+      end
+    end
+
+    def test_wraps_lines_longer_than_eighty_characters
+      long_word = "a" * 40
+      with_temp_file("#{long_word} #{long_word}") do |path|
+        stdout = StringIO.new
+
+        CLI.run([path], stdout: stdout, stderr: StringIO.new)
+
+        assert_equal "#{long_word}\n#{long_word}\n", stdout.string
       end
     end
 
@@ -23,7 +34,7 @@ module FormatText
       with_temp_file("hello world") do |path|
         out, err = capture_io { CLI.run([path]) }
 
-        assert_equal "hello world", out
+        assert_equal "hello world\n", out
         assert_empty err
       end
     end
