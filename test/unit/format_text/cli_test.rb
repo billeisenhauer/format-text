@@ -45,6 +45,35 @@ module FormatText
       assert_equal "usage: format-text FILENAME\n", err
     end
 
+    def test_prints_help_for_the_long_flag
+      stdout = StringIO.new
+      stderr = StringIO.new
+
+      status = CLI.run(["--help"], stdout: stdout, stderr: stderr)
+
+      assert_help_text(stdout.string)
+      assert_empty stderr.string
+      assert_equal CLI::SUCCESS, status
+    end
+
+    def test_prints_help_for_the_short_flag
+      stdout = StringIO.new
+
+      status = CLI.run(["-h"], stdout: stdout, stderr: StringIO.new)
+
+      assert_help_text(stdout.string)
+      assert_equal CLI::SUCCESS, status
+    end
+
+    def test_help_flag_takes_precedence_over_a_filename_argument
+      stdout = StringIO.new
+
+      status = CLI.run(["/no/such/file.txt", "--help"], stdout: stdout, stderr: StringIO.new)
+
+      assert_help_text(stdout.string)
+      assert_equal CLI::SUCCESS, status
+    end
+
     def test_reports_usage_when_no_filename_given
       stderr = StringIO.new
 
@@ -61,6 +90,14 @@ module FormatText
 
       assert_equal "format-text: no such file -- /no/such/file.txt\n", stderr.string
       assert_equal CLI::FAILURE, status
+    end
+
+    private
+
+    def assert_help_text(text)
+      assert_includes text, "usage: format-text FILENAME"
+      assert_includes text, "80 characters"
+      assert_includes text, "blank line"
     end
   end
 end

@@ -6,6 +6,23 @@ module FormatText
     SUCCESS = 0
     FAILURE = 1
 
+    USAGE = "usage: format-text FILENAME"
+    HELP_FLAGS = ["-h", "--help"].freeze
+
+    HELP = <<~TEXT.freeze
+      #{USAGE}
+
+      Reformats FILENAME into paragraphs and prints the result to stdout:
+
+        - Lines are wrapped at 80 characters, breaking at the last space before the limit.
+        - A single word longer than 80 characters is kept intact on its own line.
+        - Paragraphs (blank-line-separated blocks) are kept apart by exactly one blank line.
+        - Extra spaces and blank lines are collapsed to a single one.
+
+      Options:
+        -h, --help  Show this help text and exit
+    TEXT
+
     def self.run(argv, stdout: $stdout, stderr: $stderr)
       new(argv, stdout: stdout, stderr: stderr).run
     end
@@ -17,6 +34,7 @@ module FormatText
     end
 
     def run
+      return show_help if help_requested?
       return usage_error if filename.nil?
 
       stdout.puts(Formatter.call(File.read(filename)))
@@ -34,8 +52,17 @@ module FormatText
       argv.first
     end
 
+    def help_requested?
+      argv.intersect?(HELP_FLAGS)
+    end
+
+    def show_help
+      stdout.puts(HELP)
+      SUCCESS
+    end
+
     def usage_error
-      stderr.puts("usage: format-text FILENAME")
+      stderr.puts(USAGE)
       FAILURE
     end
   end
